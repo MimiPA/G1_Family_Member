@@ -20,7 +20,7 @@
             min-height: 100vh;
         }
         .bounce-hover:hover {
-            transform: translateY(-4px) scale(1.02);
+            transform: translateY(-3px) scale(1.02);
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .card-shadow {
@@ -30,8 +30,15 @@
             animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         @keyframes popIn {
-            0% { transform: scale(0.85); opacity: 0; }
+            0% { transform: scale(0.88); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
+        }
+        .tile-bounce {
+            animation: tilePop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes tilePop {
+            0% { transform: scale(0.7); }
+            100% { transform: scale(1); }
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -49,29 +56,44 @@
 <body class="text-slate-800 antialiased flex flex-col justify-between min-h-screen p-3 md:p-6">
 
     <!-- Top Header Navigation -->
-    <header class="max-w-4xl mx-auto w-full bg-white/90 backdrop-blur-md rounded-2xl p-4 mb-4 card-shadow border-2 border-amber-200 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner text-white">
-                👨‍👩‍👧‍👦
+    <header class="max-w-4xl mx-auto w-full bg-white/95 backdrop-blur-md rounded-2xl p-4 mb-4 card-shadow border-2 border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner text-white">
+                    👨‍👩‍👧‍👦
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-amber-900 leading-tight">Wo De Jia Ren (我的家人)</h1>
+                    <p class="text-xs md:text-sm text-amber-700 font-medium">1st Grade Mandarin Family & Sentence Builder</p>
+                </div>
             </div>
-            <div>
-                <h1 class="text-xl md:text-2xl font-bold text-amber-900 leading-tight">Wo De Jia Ren (我的家人)</h1>
-                <p class="text-xs md:text-sm text-amber-700 font-medium">1st Grade Chinese Vocabulary Fun</p>
+
+            <!-- Score Badge -->
+            <div id="scoreBadge" class="hidden bg-amber-100 border-2 border-amber-300 rounded-xl px-3 py-1 flex items-center gap-2">
+                <i class="fa-solid fa-star text-amber-500 text-base"></i>
+                <span id="scoreDisplay" class="font-bold text-amber-900 text-base">0</span>
             </div>
         </div>
 
-        <!-- Mode Toggle & Score Bar -->
-        <div class="flex items-center gap-2 sm:gap-4 ml-auto">
-            <div id="scoreBadge" class="hidden bg-amber-100 border-2 border-amber-300 rounded-xl px-3 py-1.5 flex items-center gap-2">
-                <i class="fa-solid fa-star text-amber-500 text-lg"></i>
-                <span id="scoreDisplay" class="font-bold text-amber-900 text-lg">0</span>
-            </div>
-
-            <button id="modeBtn" onclick="toggleMode()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-4 py-2 rounded-xl transition shadow-md flex items-center gap-2">
-                <i class="fa-solid fa-gamepad"></i>
-                <span id="modeBtnText">Start Quiz</span>
+        <!-- Mode Navigation Tabs -->
+        <nav class="flex items-center gap-1.5 sm:gap-2 bg-slate-100 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto justify-center">
+            <button id="navVocabBtn" onclick="switchTab('vocab')" class="px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-700 shadow-sm">
+                <i class="fa-solid fa-shapes"></i>
+                <span>Vocab</span>
             </button>
-        </div>
+            <button id="navSentenceBtn" onclick="switchTab('sentence')" class="px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-indigo-600">
+                <i class="fa-solid fa-comments"></i>
+                <span>Sentences</span>
+            </button>
+            <button id="navBuilderBtn" onclick="switchTab('builder')" class="px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-indigo-600">
+                <i class="fa-solid fa-puzzle-piece"></i>
+                <span>Builder</span>
+            </button>
+            <button id="navQuizBtn" onclick="switchTab('quiz')" class="px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+                <i class="fa-solid fa-gamepad"></i>
+                <span>Quiz (30Q)</span>
+            </button>
+        </nav>
     </header>
 
     <!-- Main Content Container -->
@@ -80,25 +102,99 @@
         <!-- Audio Unlock Banner for Mobile Browsers -->
         <div id="audioUnlockNotice" class="mb-4 bg-amber-50 border border-amber-300 text-amber-800 px-4 py-2 rounded-xl text-center text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer" onclick="unlockAudioEngine()">
             <i class="fa-solid fa-volume-high text-amber-600 animate-bounce"></i>
-            <span>Tap anywhere on the screen to enable audio speech!</span>
+            <span>Tap anywhere to enable Mandarin sound playback!</span>
         </div>
 
-        <!-- MODE 1: Flashcards & Explorer Mode -->
-        <section id="studySection" class="w-full">
-            <div class="bg-white/80 backdrop-blur rounded-3xl p-6 card-shadow border-2 border-amber-100">
+        <!-- TAB 1: Flashcards / Vocabulary Explorer Mode -->
+        <section id="vocabSection" class="w-full">
+            <div class="bg-white/80 backdrop-blur rounded-3xl p-5 sm:p-6 card-shadow border-2 border-amber-100">
                 <div class="text-center mb-6">
-                    <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Lesson Mode</span>
-                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Meet the Family Members!</h2>
-                    <p class="text-slate-600 text-sm mt-1">Click on any card to listen and learn how to speak Mandarin family names!</p>
+                    <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Lesson 1: Vocabulary</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Family Words (我的家人)</h2>
+                    <p class="text-slate-600 text-xs sm:text-sm mt-1">Tap any card to hear standard Mandarin pronunciation!</p>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6" id="flashcardsGrid">
-                    <!-- Cards rendered dynamically by JavaScript -->
+                    <!-- Cards dynamically rendered by JavaScript -->
                 </div>
             </div>
         </section>
 
-        <!-- MODE 2: Interactive Quiz Mode -->
+        <!-- TAB 2: Sentences Study Section -->
+        <section id="sentenceSection" class="w-full hidden">
+            <div class="bg-white/80 backdrop-blur rounded-3xl p-5 sm:p-6 card-shadow border-2 border-indigo-100">
+                <div class="text-center mb-6">
+                    <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Lesson 2: Sentence Patterns</span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">Expressing Family Members</h2>
+                    <p class="text-slate-600 text-xs sm:text-sm mt-1">Learn how to say "I have..." (我有...) and "I don't have..." (我没有...)</p>
+                </div>
+
+                <!-- Sentence Practice Grid -->
+                <div class="space-y-4" id="sentencesListContainer">
+                    <!-- Dynamic sentence items inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: Interactive Sentence Builder Game -->
+        <section id="builderSection" class="w-full hidden">
+            <div class="bg-white/95 backdrop-blur rounded-3xl p-5 md:p-8 card-shadow border-2 border-teal-100 relative overflow-hidden pop-animation">
+                
+                <div class="flex items-center justify-between mb-4">
+                    <span class="bg-teal-100 text-teal-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Game Mode: Builder</span>
+                    <span id="builderProgress" class="text-xs font-bold text-slate-500">Sentence 1 of 5</span>
+                </div>
+
+                <!-- Target English Sentence Card -->
+                <div class="bg-gradient-to-r from-teal-50 to-emerald-50 border-2 border-teal-200 rounded-2xl p-5 text-center mb-6 shadow-sm">
+                    <div class="text-xs font-bold text-teal-600 uppercase tracking-widest mb-1">Target Sentence (English)</div>
+                    <div id="targetEnglishSentence" class="text-xl sm:text-2xl font-black text-slate-800">
+                        I have an older brother.
+                    </div>
+                </div>
+
+                <!-- Answer Drop/Construct Area -->
+                <div class="mb-6">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center">
+                        <span>Your Sentence:</span>
+                        <button onclick="clearBuilderSentence()" class="text-xs text-slate-400 hover:text-red-500 font-bold transition">
+                            <i class="fa-solid fa-rotate-left"></i> Reset Tiles
+                        </button>
+                    </div>
+                    <div id="builtSentenceDropzone" class="min-h-[70px] bg-slate-50 border-2 border-dashed border-teal-300 rounded-2xl p-3 flex flex-wrap gap-2.5 items-center justify-start">
+                        <!-- Placed Word Tiles Appear Here -->
+                        <span id="builderPlaceholder" class="text-slate-400 text-sm italic mx-auto">Tap the word tiles below in the correct order...</span>
+                    </div>
+                </div>
+
+                <!-- Available Scrambled Word Tiles -->
+                <div class="mb-6">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Word Bank (Tap to select):</div>
+                    <div id="wordBankContainer" class="flex flex-wrap gap-2.5 justify-center p-3 bg-slate-100/70 rounded-2xl border border-slate-200">
+                        <!-- Scrambled Tiles Here -->
+                    </div>
+                </div>
+
+                <!-- Action Controls & Feedback -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                    <div id="builderFeedback" class="text-sm font-bold min-h-[24px]"></div>
+
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <button id="builderCheckBtn" onclick="checkBuilderSentence()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-2 w-full sm:w-auto">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Check Sentence</span>
+                        </button>
+                        <button id="builderNextBtn" onclick="nextBuilderSentence()" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-2 w-full sm:w-auto">
+                            <span>Next Puzzle</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TAB 4: Interactive Quiz Mode -->
         <section id="quizSection" class="w-full hidden">
             <div class="bg-white/95 backdrop-blur rounded-3xl p-5 md:p-8 card-shadow border-2 border-indigo-100 relative overflow-hidden pop-animation">
 
@@ -109,52 +205,52 @@
                         <span id="quizStreakText" class="text-orange-500"><i class="fa-solid fa-fire"></i> Streak: 0</span>
                     </div>
                     <div class="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                        <div id="progressBar fill" class="bg-gradient-to-r from-amber-400 to-indigo-500 h-full rounded-full transition-all duration-300" style="width: 3.33%;"></div>
+                        <div id="progressBarFill" class="bg-gradient-to-r from-amber-400 to-indigo-500 h-full rounded-full transition-all duration-300" style="width: 3.33%;"></div>
                     </div>
                 </div>
 
-                <!-- Question Box -->
-                <div class="text-center bg-slate-50 border-2 border-indigo-50 rounded-2xl p-6 mb-6 shadow-inner relative">
+                <!-- Question Card -->
+                <div class="text-center bg-slate-50 border-2 border-indigo-50 rounded-2xl p-5 sm:p-6 mb-6 shadow-inner relative">
                     <span id="questionCategoryTag" class="absolute top-3 left-3 bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-0.5 rounded-md">
                         Vocabulary Quiz
                     </span>
 
                     <!-- Question Prompt Content -->
                     <div id="questionContent" class="mt-2 min-h-[110px] flex flex-col items-center justify-center">
-                        <!-- Dynamic Question Text / SVG Illustration / Audio Button inserted here -->
+                        <!-- Dynamic Question HTML -->
                     </div>
                 </div>
 
-                <!-- Answer Options (4 Multiple Choice Buttons) -->
+                <!-- Answer Options (4 Multiple Choice Buttons with 一 二 三 四) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="optionsContainer">
                     <button onclick="checkAnswer(0)" id="optBtn0" class="option-btn bounce-hover flex items-center justify-between p-4 bg-white border-2 border-slate-200 hover:border-indigo-400 rounded-2xl text-left font-bold text-slate-700 transition shadow-sm group">
                         <span class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-extrabold flex items-center justify-center border border-slate-300 text-lg group-hover:bg-indigo-500 group-hover:text-white transition">一</span>
-                            <span class="option-text text-lg">Option 1</span>
+                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-extrabold flex items-center justify-center border border-slate-300 text-base group-hover:bg-indigo-500 group-hover:text-white transition">一</span>
+                            <span class="option-text text-base md:text-lg">Option 1</span>
                         </span>
                         <i class="fa-solid fa-circle-check opacity-0 group-hover:opacity-30 text-xl"></i>
                     </button>
 
                     <button onclick="checkAnswer(1)" id="optBtn1" class="option-btn bounce-hover flex items-center justify-between p-4 bg-white border-2 border-slate-200 hover:border-indigo-400 rounded-2xl text-left font-bold text-slate-700 transition shadow-sm group">
                         <span class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-extrabold flex items-center justify-center border border-slate-300 text-lg group-hover:bg-indigo-500 group-hover:text-white transition">二</span>
-                            <span class="option-text text-lg">Option 2</span>
+                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-extrabold flex items-center justify-center border border-slate-300 text-base group-hover:bg-indigo-500 group-hover:text-white transition">二</span>
+                            <span class="option-text text-base md:text-lg">Option 2</span>
                         </span>
                         <i class="fa-solid fa-circle-check opacity-0 group-hover:opacity-30 text-xl"></i>
                     </button>
 
                     <button onclick="checkAnswer(2)" id="optBtn2" class="option-btn bounce-hover flex items-center justify-between p-4 bg-white border-2 border-slate-200 hover:border-indigo-400 rounded-2xl text-left font-bold text-slate-700 transition shadow-sm group">
                         <span class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-extrabold flex items-center justify-center border border-slate-300 text-lg group-hover:bg-indigo-500 group-hover:text-white transition">三</span>
-                            <span class="option-text text-lg">Option 3</span>
+                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-extrabold flex items-center justify-center border border-slate-300 text-base group-hover:bg-indigo-500 group-hover:text-white transition">三</span>
+                            <span class="option-text text-base md:text-lg">Option 3</span>
                         </span>
                         <i class="fa-solid fa-circle-check opacity-0 group-hover:opacity-30 text-xl"></i>
                     </button>
 
                     <button onclick="checkAnswer(3)" id="optBtn3" class="option-btn bounce-hover flex items-center justify-between p-4 bg-white border-2 border-slate-200 hover:border-indigo-400 rounded-2xl text-left font-bold text-slate-700 transition shadow-sm group">
                         <span class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-extrabold flex items-center justify-center border border-slate-300 text-lg group-hover:bg-indigo-500 group-hover:text-white transition">四</span>
-                            <span class="option-text text-lg">Option 4</span>
+                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 font-extrabold flex items-center justify-center border border-slate-300 text-base group-hover:bg-indigo-500 group-hover:text-white transition">四</span>
+                            <span class="option-text text-base md:text-lg">Option 4</span>
                         </span>
                         <i class="fa-solid fa-circle-check opacity-0 group-hover:opacity-30 text-xl"></i>
                     </button>
@@ -166,7 +262,7 @@
                         <div id="feedbackIcon" class="text-2xl"></div>
                         <div>
                             <div id="feedbackTitle" class="font-bold text-lg"></div>
-                            <div id="feedbackDetail" class="text-sm font-medium"></div>
+                            <div id="feedbackDetail" class="text-xs sm:text-sm font-medium"></div>
                         </div>
                     </div>
                     <button id="nextBtn" onclick="nextQuestion()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2 ml-auto">
@@ -178,7 +274,7 @@
             </div>
         </section>
 
-        <!-- MODE 3: Score / Results Screen -->
+        <!-- Quiz Results Screen -->
         <section id="resultsSection" class="w-full hidden">
             <div class="bg-white/95 backdrop-blur rounded-3xl p-8 card-shadow border-2 border-amber-200 text-center pop-animation">
                 <div class="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-amber-300 text-5xl">
@@ -187,7 +283,7 @@
                 <h2 class="text-3xl font-extrabold text-slate-800">Quiz Completed!</h2>
                 <p class="text-slate-600 mt-1">Great job learning Mandarin Chinese family vocabulary!</p>
 
-                <!-- Score Circle / Card -->
+                <!-- Score Circle / Summary -->
                 <div class="my-6 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6 max-w-sm mx-auto">
                     <div class="text-xs font-bold text-amber-700 uppercase tracking-widest">Your Final Score</div>
                     <div class="text-5xl font-black text-amber-600 my-2" id="finalScoreVal">0 / 30</div>
@@ -201,7 +297,7 @@
                     </div>
                 </div>
 
-                <div id="teacherMessage" class="text-indigo-900 font-bold text-lg mb-6 bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+                <div id="teacherMessage" class="text-indigo-900 font-bold text-base sm:text-lg mb-6 bg-indigo-50 p-4 rounded-xl border border-indigo-200">
                     "Awesome work! You are a Mandarin superstar!"
                 </div>
 
@@ -211,9 +307,9 @@
                         <i class="fa-solid fa-rotate-right"></i>
                         <span>Try Quiz Again</span>
                     </button>
-                    <button onclick="toggleMode(true)" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-6 py-3 rounded-xl transition flex items-center gap-2">
+                    <button onclick="switchTab('vocab')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-6 py-3 rounded-xl transition flex items-center gap-2">
                         <i class="fa-solid fa-book-open"></i>
-                        <span>Study Cards First</span>
+                        <span>Back to Vocab Cards</span>
                     </button>
                 </div>
             </div>
@@ -223,13 +319,11 @@
 
     <!-- Footer -->
     <footer class="max-w-4xl mx-auto w-full text-center text-slate-500 text-xs py-3 mt-4">
-        Mandarin Chinese 1st Grade Interactive Learning Game • Made for Young Learners 🌟
+        Mandarin Chinese 1st Grade Interactive Learning • Wo De Jia Ren (我的家人) 🌟
     </footer>
 
     <script>
-        /*
-         * Mandarin Family Vocabulary Data Base
-         */
+        // Core Vocabulary Database
         const vocabData = [
             {
                 id: 'baba',
@@ -237,24 +331,15 @@
                 pinyin: 'bàba',
                 english: 'Dad',
                 relation: 'Father',
-                color: 'bg-blue-500',
-                lightBg: 'bg-blue-50',
-                borderColor: 'border-blue-300',
                 svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="50" cy="50" r="45" fill="#3B82F6"/>
                         <circle cx="50" cy="40" r="18" fill="#FDE047"/>
-                        <path d="M 35 38 A 2 2 0 0 1 43 38" stroke="#1E293B" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M 57 38 A 2 2 0 0 1 65 38" stroke="#1E293B" stroke-width="3" stroke-linecap="round"/>
-                        <!-- Moustache -->
-                        <path d="M 40 48 Q 50 42 60 48 Q 50 54 40 48 Z" fill="#1E293B"/>
-                        <!-- Glasses -->
+                        <!-- Glasses & Moustache -->
                         <circle cx="39" cy="38" r="8" stroke="#1E293B" stroke-width="2.5" fill="none"/>
                         <circle cx="61" cy="38" r="8" stroke="#1E293B" stroke-width="2.5" fill="none"/>
                         <line x1="47" y1="38" x2="53" y2="38" stroke="#1E293B" stroke-width="2.5"/>
-                        <!-- Body -->
+                        <path d="M 40 48 Q 50 42 60 48 Q 50 54 40 48 Z" fill="#1E293B"/>
                         <path d="M 25 82 C 25 60, 75 60, 75 82 Z" fill="#1D4ED8"/>
-                        <!-- Tie -->
-                        <polygon points="50,62 53,75 50,82 47,75" fill="#EF4444"/>
                       </svg>`
             },
             {
@@ -263,23 +348,15 @@
                 pinyin: 'māma',
                 english: 'Mom',
                 relation: 'Mother',
-                color: 'bg-pink-500',
-                lightBg: 'bg-pink-50',
-                borderColor: 'border-pink-300',
                 svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="50" cy="50" r="45" fill="#EC4899"/>
-                        <!-- Hair background -->
                         <circle cx="50" cy="38" r="23" fill="#1E293B"/>
                         <circle cx="50" cy="40" r="18" fill="#FDE047"/>
-                        <!-- Eyes -->
                         <circle cx="41" cy="38" r="2.5" fill="#1E293B"/>
                         <circle cx="59" cy="38" r="2.5" fill="#1E293B"/>
-                        <!-- Smile -->
                         <path d="M 42 46 Q 50 53 58 46" stroke="#EF4444" stroke-width="3" stroke-linecap="round" fill="none"/>
-                        <!-- Cheeks -->
                         <circle cx="36" cy="43" r="3" fill="#F472B6" opacity="0.6"/>
                         <circle cx="64" cy="43" r="3" fill="#F472B6" opacity="0.6"/>
-                        <!-- Body -->
                         <path d="M 25 82 C 25 60, 75 60, 75 82 Z" fill="#DB2777"/>
                       </svg>`
             },
@@ -289,21 +366,13 @@
                 pinyin: 'gēge',
                 english: 'Older Brother',
                 relation: 'Older Brother',
-                color: 'bg-emerald-500',
-                lightBg: 'bg-emerald-50',
-                borderColor: 'border-emerald-300',
                 svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="50" cy="50" r="45" fill="#10B981"/>
-                        <!-- Cap -->
                         <path d="M 30 35 A 20 20 0 0 1 70 35 Z" fill="#047857"/>
-                        <path d="M 25 35 L 75 35 L 75 38 L 25 38 Z" fill="#065F46"/>
                         <circle cx="50" cy="42" r="17" fill="#FDE047"/>
-                        <!-- Eyes -->
                         <circle cx="42" cy="40" r="2.5" fill="#1E293B"/>
                         <circle cx="58" cy="40" r="2.5" fill="#1E293B"/>
-                        <!-- Smile -->
                         <path d="M 43 48 Q 50 54 57 48" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                        <!-- Body -->
                         <path d="M 28 82 C 28 62, 72 62, 72 82 Z" fill="#059669"/>
                       </svg>`
             },
@@ -313,22 +382,13 @@
                 pinyin: 'dìdi',
                 english: 'Younger Brother',
                 relation: 'Younger Brother',
-                color: 'bg-sky-500',
-                lightBg: 'bg-sky-50',
-                borderColor: 'border-sky-300',
                 svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="50" cy="50" r="45" fill="#0284C7"/>
-                        <!-- Hair spiky -->
                         <path d="M 40 25 L 50 15 L 60 25 Z" fill="#1E293B"/>
                         <circle cx="50" cy="42" r="16" fill="#FDE047"/>
-                        <!-- Big eyes -->
                         <circle cx="42" cy="40" r="3.5" fill="#1E293B"/>
                         <circle cx="58" cy="40" r="3.5" fill="#1E293B"/>
-                        <circle cx="43" cy="39" r="1" fill="#FFFFFF"/>
-                        <circle cx="59" cy="39" r="1" fill="#FFFFFF"/>
-                        <!-- Open mouth -->
                         <path d="M 44 48 Q 50 55 56 48 Z" fill="#EF4444"/>
-                        <!-- Body -->
                         <path d="M 30 82 C 30 65, 70 65, 70 82 Z" fill="#0369A1"/>
                       </svg>`
             },
@@ -338,23 +398,14 @@
                 pinyin: 'jiějie',
                 english: 'Older Sister',
                 relation: 'Older Sister',
-                color: 'bg-purple-500',
-                lightBg: 'bg-purple-50',
-                borderColor: 'border-purple-300',
                 svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="50" cy="50" r="45" fill="#A855F7"/>
-                        <!-- Ponytails -->
                         <circle cx="28" cy="35" r="10" fill="#1E293B"/>
                         <circle cx="72" cy="35" r="10" fill="#1E293B"/>
                         <circle cx="50" cy="40" r="17" fill="#FDE047"/>
-                        <!-- Eyes -->
                         <circle cx="42" cy="39" r="2.5" fill="#1E293B"/>
                         <circle cx="58" cy="39" r="2.5" fill="#1E293B"/>
-                        <!-- Smile -->
                         <path d="M 43 47 Q 50 53 57 47" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                        <!-- Bow -->
-                        <path d="M 28 28 L 36 32 L 28 36 Z" fill="#EC4899"/>
-                        <!-- Body -->
                         <path d="M 28 82 C 28 62, 72 62, 72 82 Z" fill="#7E22CE"/>
                       </svg>`
             },
@@ -364,41 +415,80 @@
                 pinyin: 'mèimei',
                 english: 'Younger Sister',
                 relation: 'Younger Sister',
-                color: 'bg-rose-400',
-                lightBg: 'bg-rose-50',
-                borderColor: 'border-rose-300',
                 svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="50" cy="50" r="45" fill="#FB7185"/>
-                        <!-- Little bow on head -->
                         <circle cx="50" cy="22" r="5" fill="#F43F5E"/>
-                        <path d="M 42 22 L 50 22 L 45 18 Z" fill="#F43F5E"/>
-                        <path d="M 58 22 L 50 22 L 55 18 Z" fill="#F43F5E"/>
                         <circle cx="50" cy="42" r="16" fill="#FDE047"/>
-                        <!-- Eyes -->
                         <circle cx="42" cy="40" r="3" fill="#1E293B"/>
                         <circle cx="58" cy="40" r="3" fill="#1E293B"/>
-                        <!-- Cute blush & smile -->
                         <circle cx="36" cy="44" r="2.5" fill="#FDA4AF"/>
                         <circle cx="64" cy="44" r="2.5" fill="#FDA4AF"/>
-                        <path d="M 44 48 Q 50 53 56 48" stroke="#1E293B" stroke-width="2" stroke-linecap="round" fill="none"/>
-                        <!-- Body -->
+                        <path d="M 44 48 Q 50 53 56 48" stroke="#1E293B" stroke-width="2" fill="none"/>
                         <path d="M 30 82 C 30 65, 70 65, 70 82 Z" fill="#E11D48"/>
                       </svg>`
             }
         ];
 
-        /*
-         * STREAMING_CHUNK:Configuring Multi-Tier Audio Engine...
-         */
+        // Target Family Sentence Patterns Database
+        const sentencePatterns = [
+            {
+                id: 's1',
+                hanzi: '我有一个哥哥',
+                pinyin: 'wǒ yǒu yí gè gēge',
+                english: 'I have an older brother.',
+                tokens: ['我', '有', '一个', '哥哥'],
+                distractors: ['没有', '姐姐', '妹妹']
+            },
+            {
+                id: 's2',
+                hanzi: '我有一个姐姐',
+                pinyin: 'wǒ yǒu yí gè jiějie',
+                english: 'I have an older sister.',
+                tokens: ['我', '有', '一个', '姐姐'],
+                distractors: ['没有', '哥哥', '弟弟']
+            },
+            {
+                id: 's3',
+                hanzi: '我有一个哥哥和一个弟弟',
+                pinyin: 'wǒ yǒu yí gè gēge hé yí gè dìdi',
+                english: 'I have an older brother and a younger brother.',
+                tokens: ['我', '有', '一个', '哥哥', '和', '一个', '弟弟'],
+                distractors: ['没有', '妹妹']
+            },
+            {
+                id: 's4',
+                hanzi: '我没有哥哥',
+                pinyin: 'wǒ méi yǒu gēge',
+                english: 'I do not have an older brother.',
+                tokens: ['我', '没有', '哥哥'],
+                distractors: ['有', '一个', '姐姐']
+            },
+            {
+                id: 's5',
+                hanzi: '我没有妹妹',
+                pinyin: 'wǒ méi yǒu mèimei',
+                english: 'I do not have a younger sister.',
+                tokens: ['我', '没有', '妹妹'],
+                distractors: ['有', '一个', '弟弟']
+            },
+            {
+                id: 's6',
+                hanzi: '我有一个爸爸和一个妈妈',
+                pinyin: 'wǒ yǒu yí gè bàba hé yí gè māma',
+                english: 'I have a dad and a mom.',
+                tokens: ['我', '有', '一个', '爸爸', '和', '一个', '妈妈'],
+                distractors: ['没有', '哥哥']
+            }
+        ];
+
         let isAudioUnlocked = false;
         let synthEffect = null;
 
-        // Initialize Web Audio Synth for backup SFX
         try {
             synthEffect = new Tone.PolySynth(Tone.Synth).toDestination();
             synthEffect.volume.value = -6;
         } catch(e) {
-            console.log("Tone.js setup notice:", e);
+            console.log("Tone.js initialized");
         }
 
         // Mobile Audio Unlocker
@@ -406,34 +496,28 @@
             if (isAudioUnlocked) return;
             try {
                 Tone.start();
-                // Play silent buffer to unlock HTML5 audio context on iOS/Android
                 const silentAudio = new Audio();
                 silentAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
                 silentAudio.play().catch(() => {});
                 isAudioUnlocked = true;
                 const notice = document.getElementById('audioUnlockNotice');
                 if (notice) notice.classList.add('hidden');
-                console.log("Audio unlocked successfully!");
-            } catch (err) {
-                console.log("Audio unlock attempt handled", err);
-            }
+            } catch (err) {}
         }
 
         document.addEventListener('touchstart', unlockAudioEngine, { once: true });
         document.addEventListener('click', unlockAudioEngine, { once: true });
 
         /**
-         * Multi-Tier Audio Fallback Engine for Mandarin Pronunciation
-         * Priority 1: Youdao Mandarin CDN (with explicit Chinese language tag le=zh)
+         * Multi-Tier Audio Fallback Engine (Mandarin Pronunciation)
+         * Priority 1: Youdao Mandarin CDN (with explicit le=zh tag)
          * Priority 2: Web Speech API (zh-CN)
-         * Priority 3: Fallback Audio Synthesizer sound
+         * Priority 3: Fallback synth SFX
          */
         function speakMandarin(text) {
             unlockAudioEngine();
-
             if (!text) return;
 
-            // Priority 1: Youdao Public Mandarin CDN with Chinese language tag (le=zh)
             const encodedText = encodeURIComponent(text);
             const cdnUrl = `https://dict.youdao.com/dictvoice?le=zh&audio=${encodedText}`;
             const audio = new Audio();
@@ -443,54 +527,41 @@
 
             audio.play().then(() => {
                 playedSuccessfully = true;
-            }).catch(error => {
-                if (!playedSuccessfully) {
-                    fallbackWebSpeech(text);
-                }
+            }).catch(() => {
+                if (!playedSuccessfully) fallbackWebSpeech(text);
             });
 
             audio.onerror = () => {
-                if (!playedSuccessfully) {
-                    fallbackWebSpeech(text);
-                }
+                if (!playedSuccessfully) fallbackWebSpeech(text);
             };
         }
 
-        // Priority 2: Web Speech API
         function fallbackWebSpeech(text) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Stop ongoing speech
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'zh-CN';
-                utterance.rate = 0.85; // Slower for 1st graders
+                utterance.rate = 0.8;
 
-                // Find Chinese voice if available
                 const voices = window.speechSynthesis.getVoices();
                 if (voices && voices.length > 0) {
-                    const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN') || v.lang.includes('Mandarin'));
-                    if (zhVoice) {
-                        utterance.voice = zhVoice;
-                    }
+                    const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
+                    if (zhVoice) utterance.voice = zhVoice;
                 }
 
-                utterance.onerror = () => {
-                    playBackupTone();
-                };
-
+                utterance.onerror = () => playBackupTone();
                 window.speechSynthesis.speak(utterance);
             } else {
                 playBackupTone();
             }
         }
 
-        // Priority 3: Audio Tone Fallback
         function playBackupTone() {
             if (synthEffect) {
                 synthEffect.triggerAttackRelease(["C5", "E5"], "8n");
             }
         }
 
-        // Play SFX for Quiz results
         function playFeedbackSFX(isCorrect) {
             if (!synthEffect) return;
             try {
@@ -502,23 +573,20 @@
             } catch(e) {}
         }
 
-        /*
-         * STREAMING_CHUNK:Setting up Flashcards UI...
-         */
         function renderFlashcards() {
             const grid = document.getElementById('flashcardsGrid');
             grid.innerHTML = '';
 
             vocabData.forEach(item => {
                 const card = document.createElement('div');
-                card.className = `bg-white rounded-2xl p-4 border-2 ${item.borderColor} card-shadow bounce-hover flex flex-col items-center justify-between text-center cursor-pointer group transition-all`;
+                card.className = `bg-white rounded-2xl p-4 border-2 border-amber-200 card-shadow bounce-hover flex flex-col items-center justify-between text-center cursor-pointer group transition-all`;
                 card.onclick = () => speakMandarin(item.hanzi);
 
                 card.innerHTML = `
                     <div class="mb-2 transition transform group-hover:scale-110">
                         ${item.svg}
                     </div>
-                    <div class="text-2xl font-black text-slate-800 tracking-wide">${item.hanzi}</div>
+                    <div class="text-2xl sm:text-3xl font-black text-slate-800 tracking-wide">${item.hanzi}</div>
                     <div class="text-sm font-semibold text-indigo-600 mb-1">${item.pinyin}</div>
                     <div class="text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-100 px-2.5 py-1 rounded-md w-full mt-1">
                         ${item.english}
@@ -532,57 +600,185 @@
             });
         }
 
-        /*
-         * STREAMING_CHUNK:Generating 30 Question Quiz Database...
-         */
+        function renderSentencesList() {
+            const container = document.getElementById('sentencesListContainer');
+            container.innerHTML = '';
+
+            sentencePatterns.forEach((s, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-white border-2 border-indigo-100 rounded-2xl p-4 sm:p-5 card-shadow flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition hover:border-indigo-300";
+
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">${idx + 1}</span>
+                            <span class="text-xl sm:text-2xl font-black text-slate-800">${s.hanzi}</span>
+                        </div>
+                        <div class="text-xs sm:text-sm font-semibold text-indigo-600 pl-8">${s.pinyin}</div>
+                        <div class="text-sm font-medium text-slate-600 pl-8">${s.english}</div>
+                    </div>
+                    <button onclick="speakMandarin('${s.hanzi}')" class="self-end sm:self-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl border border-indigo-200 flex items-center gap-2 transition text-sm">
+                        <i class="fa-solid fa-volume-high text-indigo-600"></i>
+                        <span>Play Sentence</span>
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        let builderCurrentIdx = 0;
+        let builtUserTokens = [];
+
+        function initSentenceBuilder() {
+            builderCurrentIdx = 0;
+            loadBuilderPuzzle();
+        }
+
+        function loadBuilderPuzzle() {
+            builtUserTokens = [];
+            const p = sentencePatterns[builderCurrentIdx];
+
+            document.getElementById('builderProgress').innerText = `Sentence ${builderCurrentIdx + 1} of ${sentencePatterns.length}`;
+            document.getElementById('targetEnglishSentence').innerText = p.english;
+            document.getElementById('builderFeedback').innerText = '';
+            document.getElementById('builderFeedback').className = 'text-sm font-bold min-h-[24px]';
+
+            document.getElementById('builderCheckBtn').classList.remove('hidden');
+            document.getElementById('builderNextBtn').classList.add('hidden');
+
+            renderBuilderDropzone();
+            renderBuilderWordBank();
+        }
+
+        function renderBuilderDropzone() {
+            const zone = document.getElementById('builtSentenceDropzone');
+            zone.innerHTML = '';
+
+            if (builtUserTokens.length === 0) {
+                zone.innerHTML = `<span id="builderPlaceholder" class="text-slate-400 text-sm italic mx-auto">Tap the word tiles below in the correct order...</span>`;
+                return;
+            }
+
+            builtUserTokens.forEach((token, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "tile-bounce bg-indigo-600 text-white font-bold px-3.5 py-2 rounded-xl text-lg shadow flex items-center gap-1.5 border border-indigo-700 hover:bg-indigo-700 transition";
+                btn.onclick = () => removeTokenFromSentence(idx);
+                btn.innerHTML = `
+                    <span>${token}</span>
+                    <i class="fa-solid fa-xmark text-xs opacity-70"></i>
+                `;
+                zone.appendChild(btn);
+            });
+        }
+
+        function renderBuilderWordBank() {
+            const container = document.getElementById('wordBankContainer');
+            container.innerHTML = '';
+
+            const p = sentencePatterns[builderCurrentIdx];
+            // Combine tokens + distractors and shuffle
+            const allOptions = [...p.tokens, ...p.distractors].sort(() => Math.random() - 0.5);
+
+            allOptions.forEach((word) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white hover:bg-teal-50 text-slate-800 font-bold border-2 border-slate-200 hover:border-teal-400 px-4 py-2 rounded-xl text-lg shadow-sm transition bounce-hover";
+                btn.onclick = () => addTokenToSentence(word);
+                btn.innerText = word;
+                container.appendChild(btn);
+            });
+        }
+
+        function addTokenToSentence(word) {
+            builtUserTokens.push(word);
+            speakMandarin(word);
+            renderBuilderDropzone();
+        }
+
+        function removeTokenFromSentence(index) {
+            builtUserTokens.splice(index, 1);
+            renderBuilderDropzone();
+        }
+
+        function clearBuilderSentence() {
+            builtUserTokens = [];
+            renderBuilderDropzone();
+        }
+
+        function checkBuilderSentence() {
+            const p = sentencePatterns[builderCurrentIdx];
+            const userSentence = builtUserTokens.join('');
+            const targetSentence = p.hanzi;
+
+            const feedbackEl = document.getElementById('builderFeedback');
+
+            if (userSentence === targetSentence) {
+                feedbackEl.innerText = "🎉 Excellent! Sentence built correctly!";
+                feedbackEl.className = "text-sm font-bold text-emerald-600 min-h-[24px]";
+                playFeedbackSFX(true);
+                speakMandarin(p.hanzi);
+
+                document.getElementById('builderCheckBtn').classList.add('hidden');
+                document.getElementById('builderNextBtn').classList.remove('hidden');
+            } else {
+                feedbackEl.innerText = `❌ Not quite! Correct sentence: ${p.hanzi} (${p.english})`;
+                feedbackEl.className = "text-sm font-bold text-red-600 min-h-[24px]";
+                playFeedbackSFX(false);
+            }
+        }
+
+        function nextBuilderSentence() {
+            builderCurrentIdx++;
+            if (builderCurrentIdx >= sentencePatterns.length) {
+                builderCurrentIdx = 0;
+            }
+            loadBuilderPuzzle();
+        }
+
         let quizQuestions = [];
         let currentQuestionIdx = 0;
         let score = 0;
         let streak = 0;
         let isAnswered = false;
-        let isQuizMode = false;
 
         function generate30Questions() {
             const pool = [];
 
-            // Helpers for options generation
             function getOptions(correctVal, key = 'hanzi') {
                 const choices = [correctVal];
                 const available = vocabData.map(v => v[key]).filter(v => v !== correctVal);
-                // Shuffle available
                 available.sort(() => Math.random() - 0.5);
                 choices.push(available[0], available[1], available[2]);
-                // Shuffle 4 options
                 return choices.sort(() => Math.random() - 0.5);
             }
 
-            // Loop and build 30 diverse questions covering all 6 vocabulary terms
-            for (let i = 0; i < 5; i++) {
-                vocabData.forEach(vocab => {
-                    // Type 0: Hanzi -> Pinyin
-                    // Type 1: Pinyin -> Hanzi
-                    // Type 2: English -> Hanzi
-                    // Type 3: Hanzi -> English
-                    // Type 4: Image -> Hanzi/Pinyin
-                    // Type 5: Audio Listen -> English
-                    const qType = (i + vocabData.indexOf(vocab)) % 6;
+            function getSentenceOptions(correctVal) {
+                const choices = [correctVal];
+                const available = sentencePatterns.map(s => s.english).filter(s => s !== correctVal);
+                available.sort(() => Math.random() - 0.5);
+                choices.push(available[0], available[1], available[2]);
+                return choices.sort(() => Math.random() - 0.5);
+            }
 
-                    if (qType === 0) {
+            // 1) Vocab 18 Questions (3 cycles of 6 vocab terms)
+            for (let i = 0; i < 3; i++) {
+                vocabData.forEach((vocab, vIdx) => {
+                    const qType = (i + vIdx) % 5;
+                    if (qType === 0) { // Hanzi -> Pinyin
                         pool.push({
                             type: 'Hanzi to Pinyin',
                             speechText: vocab.hanzi,
                             promptHtml: `
                                 <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">What is the Pinyin for this word?</div>
-                                <div class="text-5xl font-extrabold text-slate-800 my-2">${vocab.hanzi}</div>
+                                <div class="text-4xl sm:text-5xl font-extrabold text-slate-800 my-2">${vocab.hanzi}</div>
                                 <button onclick="speakMandarin('${vocab.hanzi}')" class="text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold px-3 py-1 rounded-full transition flex items-center gap-1">
-                                    <i class="fa-solid fa-volume-high"></i> Listen Pronunciation
+                                    <i class="fa-solid fa-volume-high"></i> Listen
                                 </button>
                             `,
                             correctAnswer: vocab.pinyin,
                             options: getOptions(vocab.pinyin, 'pinyin'),
                             vocab: vocab
                         });
-                    } else if (qType === 1) {
+                    } else if (qType === 1) { // Pinyin -> Hanzi
                         pool.push({
                             type: 'Pinyin to Hanzi',
                             speechText: vocab.hanzi,
@@ -594,38 +790,25 @@
                             options: getOptions(vocab.hanzi, 'hanzi'),
                             vocab: vocab
                         });
-                    } else if (qType === 2) {
+                    } else if (qType === 2) { // English -> Hanzi
                         pool.push({
                             type: 'English to Hanzi',
                             speechText: vocab.hanzi,
                             promptHtml: `
                                 <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">How do you say "${vocab.english}" in Chinese?</div>
-                                <div class="text-3xl font-black text-amber-600 my-2">${vocab.english}</div>
+                                <div class="text-2xl sm:text-3xl font-black text-amber-600 my-2">${vocab.english}</div>
                             `,
                             correctAnswer: vocab.hanzi,
                             options: getOptions(vocab.hanzi, 'hanzi'),
                             vocab: vocab
                         });
-                    } else if (qType === 3) {
+                    } else if (qType === 3) { // Image -> Hanzi
                         pool.push({
-                            type: 'Hanzi to English',
+                            type: 'Picture Quiz',
                             speechText: vocab.hanzi,
                             promptHtml: `
-                                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">What does this character mean in English?</div>
-                                <div class="text-5xl font-extrabold text-slate-800 my-2">${vocab.hanzi}</div>
-                                <div class="text-sm font-semibold text-indigo-500">(${vocab.pinyin})</div>
-                            `,
-                            correctAnswer: vocab.english,
-                            options: getOptions(vocab.english, 'english'),
-                            vocab: vocab
-                        });
-                    } else if (qType === 4) {
-                        pool.push({
-                            type: 'Picture Recognition',
-                            speechText: vocab.hanzi,
-                            promptHtml: `
-                                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Who is this family member?</div>
-                                <div class="p-2 bg-amber-50 border border-amber-200 rounded-2xl inline-block shadow-sm mb-1">
+                                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Who is this family member?</div>
+                                <div class="p-2 bg-amber-50 border border-amber-200 rounded-2xl inline-block shadow-sm my-1">
                                     ${vocab.svg}
                                 </div>
                             `,
@@ -633,15 +816,15 @@
                             options: getOptions(vocab.hanzi, 'hanzi'),
                             vocab: vocab
                         });
-                    } else {
+                    } else { // Listening -> English
                         pool.push({
                             type: 'Listening Challenge',
                             speechText: vocab.hanzi,
                             promptHtml: `
-                                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Listen carefully and pick the correct English meaning!</div>
-                                <button onclick="speakMandarin('${vocab.hanzi}')" class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white text-lg font-bold px-6 py-3 rounded-2xl shadow-md transition flex items-center gap-3 animate-pulse">
-                                    <i class="fa-solid fa-volume-high text-2xl"></i>
-                                    <span>Tap to Play Audio</span>
+                                <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Listen carefully and select the English meaning!</div>
+                                <button onclick="speakMandarin('${vocab.hanzi}')" class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white text-base font-bold px-5 py-2.5 rounded-2xl shadow-md transition flex items-center gap-2 animate-pulse">
+                                    <i class="fa-solid fa-volume-high text-xl"></i>
+                                    <span>Play Sound</span>
                                 </button>
                             `,
                             correctAnswer: vocab.english,
@@ -652,13 +835,28 @@
                 });
             }
 
-            // Shuffle pool to randomize quiz order
-            quizQuestions = pool.sort(() => Math.random() - 0.5);
+            // 2) Sentence Questions (12 Questions from Sentence Patterns)
+            for (let i = 0; i < 2; i++) {
+                sentencePatterns.forEach((s) => {
+                    pool.push({
+                        type: 'Sentence Comprehension',
+                        speechText: s.hanzi,
+                        promptHtml: `
+                            <div class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">What does this sentence mean in English?</div>
+                            <div class="text-2xl sm:text-3xl font-extrabold text-slate-800 my-2">${s.hanzi}</div>
+                            <div class="text-xs font-semibold text-indigo-500">(${s.pinyin})</div>
+                        `,
+                        correctAnswer: s.english,
+                        options: getSentenceOptions(s.english),
+                        vocab: { hanzi: s.hanzi, pinyin: s.pinyin, english: s.english }
+                    });
+                });
+            }
+
+            // Shuffle pool and take 30
+            quizQuestions = pool.sort(() => Math.random() - 0.5).slice(0, 30);
         }
 
-        /*
-         * STREAMING_CHUNK:Implementing Quiz Flow and Option Checker...
-         */
         function startQuiz() {
             generate30Questions();
             currentQuestionIdx = 0;
@@ -672,34 +870,26 @@
             isAnswered = false;
             const q = quizQuestions[currentQuestionIdx];
 
-            // Progress bar
             const total = quizQuestions.length;
             const progressPercent = ((currentQuestionIdx + 1) / total) * 100;
             document.getElementById('questionProgressText').innerText = `Question ${currentQuestionIdx + 1} of ${total}`;
-            document.getElementById('progressBar fill').style.width = `${progressPercent}%`;
+            document.getElementById('progressBarFill').style.width = `${progressPercent}%`;
             document.getElementById('quizStreakText').innerHTML = `<i class="fa-solid fa-fire text-orange-500"></i> Streak: ${streak}`;
 
-            // Category tag
             document.getElementById('questionCategoryTag').innerText = q.type;
-
-            // Question content
             document.getElementById('questionContent').innerHTML = q.promptHtml;
-
-            // Hide feedback banner
             document.getElementById('feedbackBanner').className = 'hidden';
 
-            // Auto play speech for listening or hanzi questions
             setTimeout(() => {
                 if (q.speechText) speakMandarin(q.speechText);
-            }, 300);
+            }, 250);
 
-            // Render Options
+            // Options with 一 二 三 四
             q.options.forEach((optText, idx) => {
                 const btn = document.getElementById(`optBtn${idx}`);
                 const textSpan = btn.querySelector('.option-text');
                 textSpan.innerText = optText;
 
-                // Reset button styling to default white slate
                 btn.className = "option-btn bounce-hover flex items-center justify-between p-4 bg-white border-2 border-slate-200 hover:border-indigo-400 rounded-2xl text-left font-bold text-slate-700 transition shadow-sm group cursor-pointer";
                 btn.disabled = false;
             });
@@ -714,12 +904,9 @@
             const isCorrect = (selectedText === q.correctAnswer);
 
             const selectedBtn = document.getElementById(`optBtn${selectedIdx}`);
-
-            // Find correct button index
             let correctIdx = q.options.indexOf(q.correctAnswer);
             const correctBtn = document.getElementById(`optBtn${correctIdx}`);
 
-            // Disable all option buttons
             for (let i = 0; i < 4; i++) {
                 document.getElementById(`optBtn${i}`).disabled = true;
                 document.getElementById(`optBtn${i}`).classList.remove('bounce-hover');
@@ -731,15 +918,13 @@
             const feedbackDetail = document.getElementById('feedbackDetail');
 
             if (isCorrect) {
-                // CORRECT ANSWER MECHANICS
+                // Correct: Score increased, button GREEN
                 score += 1;
                 streak += 1;
                 updateScoreUI();
 
-                // Highlight selected button in GREEN
                 selectedBtn.className = "option-btn flex items-center justify-between p-4 bg-emerald-500 border-2 border-emerald-600 text-white rounded-2xl text-left font-bold transition shadow-md";
 
-                // Setup feedback banner
                 feedbackBanner.className = "mt-6 p-4 rounded-2xl border-2 bg-emerald-50 border-emerald-300 text-emerald-900 flex flex-wrap items-center justify-between gap-3 pop-animation";
                 feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-3xl"></i>`;
                 feedbackTitle.innerText = "Correct! Great Job! 🎉";
@@ -747,34 +932,27 @@
 
                 playFeedbackSFX(true);
             } else {
-                // INCORRECT ANSWER MECHANICS
+                // Wrong: No score, selected button RED, correct option GREEN
                 streak = 0;
                 document.getElementById('quizStreakText').innerHTML = `<i class="fa-solid fa-fire text-slate-400"></i> Streak: 0`;
 
-                // Highlight selected wrong button in RED
                 selectedBtn.className = "option-btn flex items-center justify-between p-4 bg-red-500 border-2 border-red-600 text-white rounded-2xl text-left font-bold transition shadow-md";
 
-                // Highlight correct option in GREEN
                 if (correctBtn) {
                     correctBtn.className = "option-btn flex items-center justify-between p-4 bg-emerald-500 border-2 border-emerald-600 text-white rounded-2xl text-left font-bold transition shadow-md ring-4 ring-emerald-200";
                 }
 
-                // Setup feedback banner
                 feedbackBanner.className = "mt-6 p-4 rounded-2xl border-2 bg-red-50 border-red-300 text-red-900 flex flex-wrap items-center justify-between gap-3 pop-animation";
                 feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-600 text-3xl"></i>`;
                 feedbackTitle.innerText = "Oops! Not quite right.";
-                feedbackDetail.innerText = `Correct Answer: ${q.vocab.hanzi} (${q.vocab.pinyin}) means ${q.vocab.english}`;
+                feedbackDetail.innerText = `Correct Answer: ${q.vocab.hanzi} (${q.vocab.pinyin}) = ${q.vocab.english}`;
 
                 playFeedbackSFX(false);
             }
 
-            // Pronounce correct answer word
             speakMandarin(q.vocab.hanzi);
         }
 
-        /*
-         * STREAMING_CHUNK:Handling Quiz navigation and game over views...
-         */
         function nextQuestion() {
             currentQuestionIdx++;
             if (currentQuestionIdx < quizQuestions.length) {
@@ -798,28 +976,24 @@
             document.getElementById('finalScoreVal').innerText = `${score} / ${total}`;
             document.getElementById('finalAccuracy').innerText = `Accuracy Score: ${percentage}%`;
 
-            // Star Rating
             const starContainer = document.getElementById('starRating');
-            let starsHtml = '';
             if (percentage >= 90) {
-                starsHtml = '<i class="fa-solid fa-star text-amber-400"></i><i class="fa-solid fa-star text-amber-400"></i><i class="fa-solid fa-star text-amber-400"></i>';
+                starContainer.innerHTML = '<i class="fa-solid fa-star text-amber-400"></i><i class="fa-solid fa-star text-amber-400"></i><i class="fa-solid fa-star text-amber-400"></i>';
             } else if (percentage >= 60) {
-                starsHtml = '<i class="fa-solid fa-star text-amber-400"></i><i class="fa-solid fa-star text-amber-400"></i><i class="fa-regular fa-star text-slate-300"></i>';
+                starContainer.innerHTML = '<i class="fa-solid fa-star text-amber-400"></i><i class="fa-solid fa-star text-amber-400"></i><i class="fa-regular fa-star text-slate-300"></i>';
             } else {
-                starsHtml = '<i class="fa-solid fa-star text-amber-400"></i><i class="fa-regular fa-star text-slate-300"></i><i class="fa-regular fa-star text-slate-300"></i>';
+                starContainer.innerHTML = '<i class="fa-solid fa-star text-amber-400"></i><i class="fa-regular fa-star text-slate-300"></i><i class="fa-regular fa-star text-slate-300"></i>';
             }
-            starContainer.innerHTML = starsHtml;
 
-            // Teacher praise message
             const msgBox = document.getElementById('teacherMessage');
             if (percentage === 100) {
-                msgBox.innerText = "🌟 Perfect Score! You are a master of Chinese family vocabulary!";
+                msgBox.innerText = "🌟 Perfect Score! You are a master of Chinese family words and sentences!";
             } else if (percentage >= 80) {
                 msgBox.innerText = "👏 Fantastic Job! You know your Mandarin family members very well!";
             } else if (percentage >= 50) {
-                msgBox.innerText = "👍 Good Effort! Practice a little more with flashcards to get 100%!";
+                msgBox.innerText = "👍 Good Effort! Practice sentence builder and flashcards to reach 100%!";
             } else {
-                msgBox.innerText = "💪 Keep trying! Review the family cards and try the quiz again!";
+                msgBox.innerText = "💪 Keep trying! Review the cards and try the quiz again!";
             }
         }
 
@@ -829,40 +1003,54 @@
             startQuiz();
         }
 
-        /*
-         * STREAMING_CHUNK:Mode Switcher & Initialization...
-         */
-        function toggleMode(forceStudy = false) {
-            const studySec = document.getElementById('studySection');
+        function switchTab(tabName) {
+            const vocabSec = document.getElementById('vocabSection');
+            const sentenceSec = document.getElementById('sentenceSection');
+            const builderSec = document.getElementById('builderSection');
             const quizSec = document.getElementById('quizSection');
             const resultsSec = document.getElementById('resultsSection');
-            const modeBtnText = document.getElementById('modeBtnText');
             const scoreBadge = document.getElementById('scoreBadge');
 
-            if (forceStudy || isQuizMode) {
-                // Switch to Study Mode
-                isQuizMode = false;
-                studySec.classList.remove('hidden');
-                quizSec.classList.add('hidden');
-                resultsSec.classList.add('hidden');
-                scoreBadge.classList.add('hidden');
-                modeBtnText.innerText = "Start Quiz";
-            } else {
-                // Switch to Quiz Mode
-                isQuizMode = true;
-                studySec.classList.add('hidden');
+            const btnVocab = document.getElementById('navVocabBtn');
+            const btnSentence = document.getElementById('navSentenceBtn');
+            const btnBuilder = document.getElementById('navBuilderBtn');
+            const btnQuiz = document.getElementById('navQuizBtn');
+
+            // Reset buttons style
+            [btnVocab, btnSentence, btnBuilder].forEach(btn => {
+                btn.className = "px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-indigo-600";
+            });
+            btnQuiz.className = "px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm";
+
+            // Hide all
+            vocabSec.classList.add('hidden');
+            sentenceSec.classList.add('hidden');
+            builderSec.classList.add('hidden');
+            quizSec.classList.add('hidden');
+            resultsSec.classList.add('hidden');
+            scoreBadge.classList.add('hidden');
+
+            if (tabName === 'vocab') {
+                vocabSec.classList.remove('hidden');
+                btnVocab.className = "px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-700 shadow-sm";
+            } else if (tabName === 'sentence') {
+                sentenceSec.classList.remove('hidden');
+                btnSentence.className = "px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-700 shadow-sm";
+            } else if (tabName === 'builder') {
+                builderSec.classList.remove('hidden');
+                btnBuilder.className = "px-3 py-2 rounded-xl text-xs md:text-sm font-bold transition flex items-center gap-1.5 bg-white text-indigo-700 shadow-sm";
+                initSentenceBuilder();
+            } else if (tabName === 'quiz') {
                 quizSec.classList.remove('hidden');
-                resultsSec.classList.add('hidden');
                 scoreBadge.classList.remove('hidden');
-                modeBtnText.innerText = "Study Mode";
                 startQuiz();
             }
         }
 
-        // Initialize App on Window Load
         window.onload = function() {
             renderFlashcards();
-            console.log("Mandarin 1st Grade Interactive Game initialized successfully!");
+            renderSentencesList();
+            console.log("Wo De Jia Ren - Interactive App Initialized Successfully!");
         };
     </script>
 </body>
